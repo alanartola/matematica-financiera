@@ -32,3 +32,6 @@ export const unitPlural = (u: PeriodUnit) => PLURALS[u];
 export const unitAdjective = (u: PeriodUnit) => ADJECTIVES[u];
 export const unitCount = (n: number, u: PeriodUnit) => `${n.toLocaleString('es-AR')} ${n === 1 ? u : PLURALS[u]}`;
 export const isUnit = (u: string): u is PeriodUnit => u in PLURALS;
+
+/** Plural de un nombre de período (mes → meses, trimestre → trimestres). */
+export const pluralize = (period: string) => (period === 'mes' ? 'meses' : `${period}s`);

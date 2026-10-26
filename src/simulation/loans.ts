@@ -19,6 +19,7 @@ import {
   type ScheduleResult,
 } from '../engine';
 import type { Table } from '../export/tabular';
+import { pluralize } from '../content/units';
 import { formatDateAR } from '../engine/daycount';
 
 /** Estado plano (primitivos) de un formulario de préstamo. */
@@ -158,8 +159,7 @@ export function periodLabel(p: number): string {
 }
 
 export function periodPlural(p: number): string {
-  const s = frequencyByPerYear(p).period;
-  return s === 'mes' ? 'meses' : `${s}s`;
+  return pluralize(frequencyByPerYear(p).period);
 }
 
 /** Tabla exportable del cuadro de marcha. */

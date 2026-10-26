@@ -125,6 +125,15 @@ export function SeriesChart<T extends object>(props: SeriesChartProps<T>) {
   const yLo = typeof wantLo === 'number' ? Math.min(wantLo, lo) : hasBars || wantLo === undefined ? Math.min(0, lo) : lo;
   const yHi = typeof wantHi === 'number' ? Math.max(wantHi, hi) : hi;
   const yTicks = niceTicks(yLo, yHi);
+  // Eje X numérico sin marcas explícitas: marcas limpias sobre el rango de los datos.
+  let autoXTicks: number[] | undefined;
+  if (!hasBars && !xTicks && !xDomain) {
+    const xs = rowsAny0.map((r) => r[xKey]).filter((v): v is number => typeof v === 'number');
+    if (xs.length) {
+      const t = niceTicks(Math.min(...xs), Math.max(...xs), 6);
+      autoXTicks = t.filter((v) => v >= Math.min(...xs) - 1e-12 && v <= Math.max(...xs) + 1e-12);
+    }
+  }
   const rowsAny = data as unknown as Record<string, unknown>[];
   const selectedRow = selectedX === null || selectedX === undefined ? undefined : rowsAny.find((d) => d[xKey] === selectedX);
 
@@ -158,7 +167,7 @@ export function SeriesChart<T extends object>(props: SeriesChartProps<T>) {
             dataKey={xKey as string}
             type={hasBars ? 'category' : 'number'}
             domain={hasBars ? undefined : (xDomain ?? ['dataMin', 'dataMax'])}
-            ticks={hasBars ? undefined : xTicks}
+            ticks={hasBars ? undefined : (xTicks ?? autoXTicks)}
             interval={hasBars ? (xTickAngle ? 0 : 'preserveStartEnd') : undefined}
             angle={xTickAngle}
             textAnchor={xTickAngle ? 'end' : 'middle'}
