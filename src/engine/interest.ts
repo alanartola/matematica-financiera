@@ -86,3 +86,9 @@ export function compoundSchedule(c0: Num, i: Num, n: number): CompoundPeriod[] {
   }
   return rows;
 }
+
+/** Plazo para que un capital se multiplique por k con interés simple: n = (k − 1) / i. */
+export function simpleTermForMultiple(k: Num, i: Num): Dec {
+  if (dec(i).lte(0)) throw new Error('La tasa debe ser positiva.');
+  return dec(k).minus(1).div(i);
+}
