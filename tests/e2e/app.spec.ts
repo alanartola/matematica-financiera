@@ -28,7 +28,8 @@ const ROUTES = [
 ];
 
 async function open(page: Page, route: string) {
-  await page.goto(`/#${route}`);
+  // Rutas relativas a baseURL (incluye el prefijo /matematica-financiera/).
+  await page.goto(`./#${route}`);
   await page.locator('.workbench, .page').first().waitFor();
 }
 
@@ -42,7 +43,7 @@ function collectErrors(page: Page) {
 }
 
 test('la página de inicio presenta los seis módulos en español', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('./');
   await expect(page.getByRole('heading', { name: 'Matemática Financiera', level: 1 })).toBeVisible();
   await expect(page.locator('.module-card')).toHaveCount(6);
   await expect(page.locator('html')).toHaveAttribute('lang', 'es');
@@ -59,12 +60,14 @@ for (const route of ROUTES) {
     const overflowX = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     expect(overflowX).toBeLessThanOrEqual(0);
 
-    // Panel de variables y gráfico visibles simultáneamente dentro de la pantalla.
+    // Panel de variables y gráfico visibles simultáneamente dentro de la pantalla
+    // (en el celular la disposición es vertical y la página se desplaza).
+    const mobile = vp.width < 900;
     const controls = await page.locator('.wb-controls').boundingBox();
     const chart = await page.locator('.wb-chart').boundingBox();
     expect(controls).not.toBeNull();
     expect(chart).not.toBeNull();
-    expect(chart!.y + chart!.height).toBeLessThanOrEqual(vp.height + 1);
+    if (!mobile) expect(chart!.y + chart!.height).toBeLessThanOrEqual(vp.height + 1);
     expect(chart!.x + chart!.width).toBeLessThanOrEqual(vp.width + 1);
     expect(controls!.y).toBeLessThan(vp.height);
     const area = await page.locator('.wb-chart .chart-area').boundingBox();
@@ -165,7 +168,7 @@ test('modo clase y modo oscuro', async ({ page }) => {
   const fontSize = await page.evaluate(() => parseFloat(getComputedStyle(document.documentElement).fontSize));
   expect(fontSize).toBeGreaterThanOrEqual(19);
   const chart = await page.locator('.wb-chart').boundingBox();
-  expect(chart!.y + chart!.height).toBeLessThanOrEqual(page.viewportSize()!.height + 1);
+  if (page.viewportSize()!.width >= 900) expect(chart!.y + chart!.height).toBeLessThanOrEqual(page.viewportSize()!.height + 1);
   await page.getByRole('button', { name: 'Alternar modo claro u oscuro' }).click();
   await expect(page.locator('html')).toHaveAttribute('data-theme', /light|dark/);
 });

@@ -11,7 +11,9 @@ Cada herramienta reúne cuatro elementos:
 
 El principio de trabajo es: **modificar una variable, visualizar su efecto, comprender la relación matemática y verificar el resultado.**
 
-> Proyecto privado. No se publica en GitHub Pages ni en ningún otro servicio sin autorización expresa de su propietario.
+**Aplicación en línea:** <https://alanartola.github.io/matematica-financiera/>
+
+Funciona directamente en el navegador (Chrome u otro navegador moderno), en computadoras y celulares, sin instalar nada.
 
 ---
 
@@ -202,7 +204,17 @@ npx playwright install chromium
 | `npm run test:all` | Tipos + pruebas unitarias + pruebas de interfaz |
 | `npm run format` | Formato del código con Prettier |
 
-La compilación usa rutas relativas (`base: './'`) y navegación por fragmento (`#/modulo/tema`), por lo que `dist/` puede abrirse desde cualquier carpeta servida localmente.
+La compilación usa el prefijo `/matematica-financiera/` (`base` en `vite.config.ts`), el mismo de GitHub Pages; `npm run preview` la sirve en `http://localhost:4173/matematica-financiera/`. La navegación interna usa el fragmento de la URL (`#/modulo/tema`), por lo que no hace falta configurar redirecciones en el servidor.
+
+### Publicación en GitHub Pages
+
+El flujo `.github/workflows/deploy.yml` se ejecuta en cada actualización de la rama `main` (y también manualmente desde la pestaña *Actions*): instala dependencias, ejecuta las pruebas unitarias, compila y publica `dist/` en GitHub Pages. Si alguna prueba falla, no se publica.
+
+Para probar el sitio publicado con Playwright:
+
+```bash
+E2E_BASE_URL=https://alanartola.github.io/matematica-financiera/ npx playwright test
+```
 
 ## 10. Arquitectura técnica
 
@@ -233,9 +245,9 @@ Decisiones principales:
 - Cálculo inverso: solución única, múltiple, capital identificado sin plazo, posiciones conocidas, cargos incluidos, tasas incompatibles.
 - Laboratorio, exportación CSV/XLSX, lectura de números en formato argentino y resolución de todos los ejercicios con parámetros mínimos, predeterminados y máximos.
 
-**Interfaz (Playwright) — 66 pruebas en 1366 × 768 y 1920 × 1080.**
+**Interfaz (Playwright) — 99 pruebas en 1366 × 768, 1920 × 1080 y celular (Pixel 7).**
 
-- Todas las pantallas: sin errores de consola, sin desplazamiento horizontal, panel de variables y gráfico visibles a la vez dentro de la pantalla, gráfico de al menos 240 px de alto, sin elementos fuera del contenedor y tipografía de al menos 15 px.
+- Todas las pantallas: sin errores de consola, sin desplazamiento horizontal, panel de variables y gráfico visibles a la vez dentro de la pantalla (en escritorio), gráfico de al menos 240 px de alto, sin elementos fuera del contenedor y tipografía de al menos 15 px.
 - Interacciones: campos y barras, importes escritos con separadores, valores esperados (cuota francesa $ 458.037,94; TEA 42,5761 %), cuadro de marcha, verificaciones, descarga CSV y Excel, laboratorio, cálculo inverso, ejercicios, modo clase y modo oscuro.
 
 ## 12. Limitaciones conocidas
@@ -257,7 +269,9 @@ matematica-financiera/
 ├── index.html
 ├── package.json
 ├── vite.config.ts            Vite + Vitest
-├── playwright.config.ts      Pruebas de interfaz (1366×768 y 1920×1080)
+├── playwright.config.ts      Pruebas de interfaz (1366×768, 1920×1080 y celular)
+├── .github/workflows/
+│   └── deploy.yml            Publicación automática en GitHub Pages
 ├── public/
 │   └── favicon.svg
 ├── src/
@@ -296,4 +310,4 @@ matematica-financiera/
 - TIR modificada (TIRM) y comparación de proyectos de distinta escala.
 - Guardar y compartir escenarios del laboratorio mediante enlaces.
 - Exportación de gráficos como imagen para materiales de clase.
-- Publicación como sitio estático (por ejemplo, GitHub Pages) **sólo con autorización expresa**.
+- Funcionamiento sin conexión (aplicación web instalable).
