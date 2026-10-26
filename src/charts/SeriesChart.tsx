@@ -5,13 +5,14 @@
  */
 import type { ReactNode } from 'react';
 import { Area, Bar, CartesianGrid, ComposedChart, Line, ReferenceArea, ReferenceDot, ReferenceLine, Tooltip, XAxis, YAxis } from 'recharts';
-import { ChartBox, clickedX, tooltipFor, useChartStyle, type TooltipRow } from './common';
+import { ChartBox, clickedX, niceTicks, tooltipFor, useChartStyle, type TooltipRow } from './common';
 
 export interface SeriesDef {
   key: string;
   label: string;
   color: string;
-  kind?: 'line' | 'area' | 'bar' | 'step';
+  /** 'range': área entre dos valores; el dato debe ser un par [inferior, superior]. */
+  kind?: 'line' | 'area' | 'bar' | 'step' | 'range';
   stack?: string;
   dashed?: boolean;
   width?: number;
@@ -36,7 +37,7 @@ export interface Band {
   label?: string;
 }
 
-export interface SeriesChartProps<T extends Record<string, unknown>> {
+export interface SeriesChartProps<T extends object> {
   data: T[];
   xKey: keyof T & string;
   series: SeriesDef[];
@@ -55,10 +56,12 @@ export interface SeriesChartProps<T extends Record<string, unknown>> {
   points?: { x: number; y: number; color: string; label?: string }[];
   tooltip?: (row: T) => { title: ReactNode; rows: TooltipRow[]; note?: ReactNode } | null;
   barCategoryGap?: string | number;
+  /** Rotación de las etiquetas del eje X (ejes de categorías con nombres largos). */
+  xTickAngle?: number;
   ariaLabel: string;
 }
 
-export function SeriesChart<T extends Record<string, unknown>>(props: SeriesChartProps<T>) {
+export function SeriesChart<T extends object>(props: SeriesChartProps<T>) {
   const st = useChartStyle();
   const { palette } = st;
   const {
@@ -71,7 +74,6 @@ export function SeriesChart<T extends Record<string, unknown>>(props: SeriesChar
     xDomain,
     xFormat,
     yFormat = st.moneyTick,
-    yDomain,
     selectedX,
     onSelectX,
     refLines = [],
@@ -79,17 +81,59 @@ export function SeriesChart<T extends Record<string, unknown>>(props: SeriesChar
     points = [],
     tooltip,
     barCategoryGap,
+    xTickAngle,
     ariaLabel,
   } = props;
   const hasBars = series.some((s) => s.kind === 'bar' && !s.hidden);
-  const selectedRow = selectedX === null || selectedX === undefined ? undefined : data.find((d) => d[xKey] === selectedX);
+  const rowsAny0 = data as unknown as Record<string, unknown>[];
+  // Extensión de los datos visibles (las barras apiladas se suman por pila).
+  let lo = Infinity;
+  let hi = -Infinity;
+  for (const row of rowsAny0) {
+    const stacks = new Map<string, number>();
+    for (const s of series) {
+      if (s.hidden) continue;
+      const v = row[s.key];
+      const vals = Array.isArray(v) ? (v as number[]) : typeof v === 'number' ? [v] : [];
+      if (s.kind === 'bar' && s.stack && typeof v === 'number') {
+        stacks.set(s.stack, (stacks.get(s.stack) ?? 0) + v);
+        continue;
+      }
+      for (const x of vals) {
+        if (!Number.isFinite(x)) continue;
+        lo = Math.min(lo, x);
+        hi = Math.max(hi, x);
+      }
+    }
+    for (const total of stacks.values()) {
+      lo = Math.min(lo, total);
+      hi = Math.max(hi, total);
+    }
+  }
+  for (const r of props.refLines ?? [])
+    if (r.y !== undefined) {
+      lo = Math.min(lo, r.y);
+      hi = Math.max(hi, r.y);
+    }
+  for (const p of props.points ?? []) {
+    lo = Math.min(lo, p.y);
+    hi = Math.max(hi, p.y);
+  }
+  if (!Number.isFinite(lo)) [lo, hi] = [0, 1];
+  const wantLo = props.yDomain?.[0];
+  const wantHi = props.yDomain?.[1];
+  const yLo = typeof wantLo === 'number' ? Math.min(wantLo, lo) : hasBars || wantLo === undefined ? Math.min(0, lo) : lo;
+  const yHi = typeof wantHi === 'number' ? Math.max(wantHi, hi) : hi;
+  const yTicks = niceTicks(yLo, yHi);
+  const rowsAny = data as unknown as Record<string, unknown>[];
+  const selectedRow = selectedX === null || selectedX === undefined ? undefined : rowsAny.find((d) => d[xKey] === selectedX);
 
   return (
     <div style={{ width: '100%', height: '100%' }} role="img" aria-label={ariaLabel}>
       <ChartBox>
         <ComposedChart
-          data={data as Record<string, unknown>[]}
-          margin={st.margin}
+          data={rowsAny}
+          margin={xTickAngle ? { ...st.margin, bottom: st.margin.bottom + st.font * 2 } : st.margin}
           barCategoryGap={barCategoryGap ?? (data.length > 60 ? 1 : '18%')}
           onClick={(s) => {
             const x = clickedX(s);
@@ -115,7 +159,10 @@ export function SeriesChart<T extends Record<string, unknown>>(props: SeriesChar
             type={hasBars ? 'category' : 'number'}
             domain={hasBars ? undefined : (xDomain ?? ['dataMin', 'dataMax'])}
             ticks={hasBars ? undefined : xTicks}
-            interval={hasBars ? 'preserveStartEnd' : undefined}
+            interval={hasBars ? (xTickAngle ? 0 : 'preserveStartEnd') : undefined}
+            angle={xTickAngle}
+            textAnchor={xTickAngle ? 'end' : 'middle'}
+            height={xTickAngle ? st.font * 5 : undefined}
             tickFormatter={xFormat}
             allowDecimals={false}
             stroke={palette.axis}
@@ -129,12 +176,20 @@ export function SeriesChart<T extends Record<string, unknown>>(props: SeriesChar
             tick={st.axis.tick}
             tickLine={st.axis.tickLine}
             tickFormatter={yFormat}
-            domain={yDomain ?? [0, 'auto']}
+            domain={[yTicks[0], yTicks[yTicks.length - 1]]}
+            ticks={yTicks}
+            interval={0}
             width={st.yWidth}
             label={st.yLabel(yLabel)}
             allowDataOverflow={false}
           />
-          {tooltip && <Tooltip content={tooltipFor(tooltip)} cursor={hasBars ? { fill: palette.grid, fillOpacity: 0.5 } : { stroke: palette.axis, strokeWidth: 1 }} isAnimationActive={false} />}
+          {tooltip && (
+            <Tooltip
+              content={tooltipFor(tooltip)}
+              cursor={hasBars ? { fill: palette.grid, fillOpacity: 0.5 } : { stroke: palette.axis, strokeWidth: 1 }}
+              isAnimationActive={false}
+            />
+          )}
           {series
             .filter((s) => !s.hidden)
             .map((s) => {
@@ -153,8 +208,23 @@ export function SeriesChart<T extends Record<string, unknown>>(props: SeriesChar
                   />
                 );
               }
+              if (s.kind === 'range') {
+                return <Area key={s.key} {...common} type="linear" stroke="none" fill={s.color} fillOpacity={0.22} activeDot={false} legendType="none" />;
+              }
               if (s.kind === 'area') {
-                return <Area key={s.key} {...common} type="linear" stackId={s.stack} stroke={s.color} strokeWidth={s.width ?? 2} fill={s.color} fillOpacity={0.12} dot={false} />;
+                return (
+                  <Area
+                    key={s.key}
+                    {...common}
+                    type="linear"
+                    stackId={s.stack}
+                    stroke={s.color}
+                    strokeWidth={s.width ?? 2}
+                    fill={s.color}
+                    fillOpacity={0.12}
+                    dot={false}
+                  />
+                );
               }
               return (
                 <Line
@@ -181,18 +251,28 @@ export function SeriesChart<T extends Record<string, unknown>>(props: SeriesChar
               strokeWidth={1.5}
               strokeDasharray={r.dashed === false ? undefined : '5 4'}
               ifOverflow="extendDomain"
-              label={r.label ? { value: r.label, position: r.x !== undefined ? 'insideTopRight' : 'insideTopLeft', fill: palette.textSecondary, fontSize: st.font - 1 } : undefined}
+              label={
+                r.label
+                  ? { value: r.label, position: r.x !== undefined ? 'insideTopRight' : 'insideTopLeft', fill: palette.textSecondary, fontSize: st.font - 1 }
+                  : undefined
+              }
             />
           ))}
-          {selectedX !== null && selectedX !== undefined && (
-            <ReferenceLine x={selectedX} stroke={palette.marker} strokeWidth={2} ifOverflow="extendDomain" />
-          )}
+          {selectedX !== null && selectedX !== undefined && <ReferenceLine x={selectedX} stroke={palette.marker} strokeWidth={2} ifOverflow="extendDomain" />}
           {selectedRow &&
             !hasBars &&
             series
-              .filter((s) => !s.hidden && s.kind !== 'bar' && typeof selectedRow[s.key] === 'number')
+              .filter((s) => !s.hidden && s.kind !== 'bar' && s.kind !== 'range' && typeof selectedRow[s.key] === 'number')
               .map((s) => (
-                <ReferenceDot key={`sel-${s.key}`} x={selectedX!} y={selectedRow[s.key] as number} r={6} fill={s.color} stroke={palette.surface} strokeWidth={2} />
+                <ReferenceDot
+                  key={`sel-${s.key}`}
+                  x={selectedX!}
+                  y={selectedRow[s.key] as number}
+                  r={6}
+                  fill={s.color}
+                  stroke={palette.surface}
+                  strokeWidth={2}
+                />
               ))}
           {points.map((p, k) => (
             <ReferenceDot

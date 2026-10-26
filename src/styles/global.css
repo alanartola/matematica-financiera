@@ -969,6 +969,11 @@ table.data td.left {
   text-align: left;
 }
 
+table.data.wrap td,
+table.data.wrap th {
+  white-space: normal;
+}
+
 table.data tbody tr:hover {
   background: var(--surface-2);
 }

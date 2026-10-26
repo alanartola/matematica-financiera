@@ -19,8 +19,24 @@ export function useChartStyle() {
     grid: { stroke: palette.grid, strokeDasharray: undefined as string | undefined, vertical: false },
     axis: { stroke: palette.axis, tick, tickLine: { stroke: palette.axis } },
     margin: { top: 12, right: 24, bottom: chartFont + 22, left: chartFont + 26 },
-    xLabel: (value: string) => ({ value, position: 'insideBottom' as const, offset: -(chartFont + 4), fill: palette.text, fontSize: chartFont, fontWeight: 600 }),
-    yLabel: (value: string) => ({ value, angle: -90, position: 'insideLeft' as const, offset: -(chartFont + 14), fill: palette.text, fontSize: chartFont, fontWeight: 600, style: { textAnchor: 'middle' as const } }),
+    xLabel: (value: string) => ({
+      value,
+      position: 'insideBottom' as const,
+      offset: -(chartFont + 4),
+      fill: palette.text,
+      fontSize: chartFont,
+      fontWeight: 600,
+    }),
+    yLabel: (value: string) => ({
+      value,
+      angle: -90,
+      position: 'insideLeft' as const,
+      offset: -(chartFont + 14),
+      fill: palette.text,
+      fontSize: chartFont,
+      fontWeight: 600,
+      style: { textAnchor: 'middle' as const },
+    }),
     moneyTick: (v: number) => fmtMoneyCompact(v),
     yWidth: chartFont * 5.6,
   };
@@ -102,6 +118,23 @@ export function useLockedMax(max: number, locked: boolean): [number, () => void]
   }, [locked, target, fixed]);
   const reset = useCallback(() => setFixed(niceCeil(max)), [max]);
   return [locked ? Math.max(fixed, target) : target, reset];
+}
+
+/** Marcas "limpias" para un eje continuo que cubren [lo, hi] con unas 5 divisiones. */
+export function niceTicks(lo: number, hi: number, target = 5): number[] {
+  if (!(hi > lo)) {
+    const pad = Math.abs(hi) * 0.1 || 1;
+    lo -= pad;
+    hi += pad;
+  }
+  const raw = (hi - lo) / target;
+  const p = Math.pow(10, Math.floor(Math.log10(raw)));
+  const step = [1, 2, 2.5, 5, 10].map((f) => f * p).find((s) => s >= raw * (1 - 1e-9)) ?? 10 * p;
+  const start = Math.floor(lo / step + 1e-9) * step;
+  const end = Math.ceil(hi / step - 1e-9) * step;
+  const ticks: number[] = [];
+  for (let v = start; v <= end + step * 1e-6; v += step) ticks.push(Number(v.toPrecision(12)));
+  return ticks;
 }
 
 /** Ticks enteros razonables para un eje de períodos 0..n. */

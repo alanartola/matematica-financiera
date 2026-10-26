@@ -82,7 +82,10 @@ export function texPct(x: number, decimals = 4): string {
  * puntos y forman grupos de tres dígitos (1.234.567), son separadores de miles.
  */
 export function parseNumberAR(input: string): number | null {
-  let s = input.trim().replace(/[$%\s ]/g, '').replace(/[−–]/g, '-');
+  let s = input
+    .trim()
+    .replace(/[$%\s ]/g, '')
+    .replace(/[−–]/g, '-');
   if (!s) return null;
   if (s.includes(',')) {
     s = s.replace(/\./g, '').replace(',', '.');

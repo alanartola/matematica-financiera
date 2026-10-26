@@ -149,7 +149,7 @@ function fitCandidate(input: InverseCapitalInput, i: number, n: number, position
 
 function positionsFor(input: InverseCapitalInput, n: number): number[] {
   const count = input.payments.length;
-  const first = input.positionMode === 'ultimas' ? n - count + 1 : input.firstPosition ?? 1;
+  const first = input.positionMode === 'ultimas' ? n - count + 1 : (input.firstPosition ?? 1);
   return input.payments.map((_, k) => first + k);
 }
 
@@ -279,7 +279,9 @@ export function reconstructPrincipal(input: InverseCapitalInput): InverseCapital
       `Existen ${comp.length} combinaciones compatibles${result.scannedUpTo && comp[comp.length - 1].n === result.scannedUpTo ? ' (y más allá del rango explorado)' : ''}: el capital va de ${money(minP)} a ${money(maxP)} según el número total de cuotas.`,
     );
     if (input.system === 'frances') {
-      result.explanation.push('En el sistema francés con tasa fija todas las cuotas son iguales: las últimas cuotas no revelan cuántas se pagaron antes. Cada n adicional agrega una cuota más al valor actual.');
+      result.explanation.push(
+        'En el sistema francés con tasa fija todas las cuotas son iguales: las últimas cuotas no revelan cuántas se pagaron antes. Cada n adicional agrega una cuota más al valor actual.',
+      );
     } else if (input.system === 'aleman') {
       result.explanation.push(
         'En el sistema alemán las últimas cuotas revelan la amortización constante A (y la tasa), pero no cuántas cuotas tuvo la operación: P = A · n.',
@@ -413,7 +415,7 @@ export function impliedRateFrench(principal: number, n: number, payment: number)
   let hi = 1;
   while (f(hi) < 0 && hi < 1e6) hi *= 2;
   const log: SolveLog[] = [];
-  let x = Math.min(Math.max((c * n - P) / (P * n) * 2, lo), hi); // aproximación inicial
+  let x = Math.min(Math.max(((c * n - P) / (P * n)) * 2, lo), hi); // aproximación inicial
   for (let k = 1; k <= 100; k++) {
     const fx = f(x);
     log.push({ iteration: k, rate: x, value: fx });
@@ -495,5 +497,3 @@ export function roundToSignificant(x: number, digits = 4): number {
   if (x === 0) return 0;
   return toNum(new D(x).toSignificantDigits(digits));
 }
-
-

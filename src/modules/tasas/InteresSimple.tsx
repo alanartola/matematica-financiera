@@ -4,7 +4,8 @@ import { simpleVsCompound } from '../../simulation/rates';
 import { SeriesChart } from '../../charts/SeriesChart';
 import { periodTicks, useLockedMax } from '../../charts/common';
 import { ParamControl, Segmented, SelectField } from '../../ui/controls';
-import { Callout, FormulaBox, Kpi, StepList, Tex, Workbench, Legend } from '../../ui/layout';
+import { Kpi, StepList, Workbench, Legend } from '../../ui/layout';
+import { ExplicacionSimple, FormulaSimple } from '../../content/tasas';
 import { ScaleLock, SnapshotButton, useSnapshot } from '../../ui/chartTools';
 import { fmtMoney, fmtPct, texMoney, texNum, texRate } from '../../ui/format';
 import { usePageState } from '../../ui/router';
@@ -115,10 +116,7 @@ export default function InteresSimple({ query }: PageProps) {
     {
       title: 'Pendiente de la recta',
       body: (
-        <>
-          Cada {unit} se agrega el mismo interés, porque siempre se calcula sobre el capital original. Ese incremento constante es la pendiente de la
-          recta:
-        </>
+        <>Cada {unit} se agrega el mismo interés, porque siempre se calcula sobre el capital original. Ese incremento constante es la pendiente de la recta:</>
       ),
       math: `\\frac{\\Delta VF}{\\Delta n} = C_0 \\cdot i = ${texMoney(slope)} \\text{ por ${unit}}`,
     },
@@ -132,7 +130,16 @@ export default function InteresSimple({ query }: PageProps) {
       }}
       controls={
         <>
-          <ParamControl label="Capital inicial (C₀)" kind="money" value={state.c0} min={0} max={10_000_000} step={10_000} onChange={(v) => set('c0', v)} testId="param-capital" />
+          <ParamControl
+            label="Capital inicial (C₀)"
+            kind="money"
+            value={state.c0}
+            min={0}
+            max={10_000_000}
+            step={10_000}
+            onChange={(v) => set('c0', v)}
+            testId="param-capital"
+          />
           <ParamControl
             label={`Tasa de interés ${unitAdjective(unit)} (i)`}
             kind="percent"
@@ -153,10 +160,25 @@ export default function InteresSimple({ query }: PageProps) {
             onChange={(v) => patch({ n: v, t: Math.min(state.t, v) })}
             testId="param-n"
           />
-          <SelectField label="Unidad de tiempo del período" value={unit} options={UNIT_OPTIONS} onChange={(v) => set('unit', v)} help="La tasa y el plazo deben estar expresados en la misma unidad." />
+          <SelectField
+            label="Unidad de tiempo del período"
+            value={unit}
+            options={UNIT_OPTIONS}
+            onChange={(v) => set('unit', v)}
+            help="La tasa y el plazo deben estar expresados en la misma unidad."
+          />
           <div className="group">
             <p className="group-title">Marcador</p>
-            <ParamControl label="Período seleccionado" kind="int" value={t} min={0} max={state.n} hardMax={state.n} onChange={(v) => set('t', v)} help="También podés hacer clic sobre el gráfico." />
+            <ParamControl
+              label="Período seleccionado"
+              kind="int"
+              value={t}
+              min={0}
+              max={state.n}
+              hardMax={state.n}
+              onChange={(v) => set('t', v)}
+              help="También podés hacer clic sobre el gráfico."
+            />
           </div>
         </>
       }
@@ -176,7 +198,12 @@ export default function InteresSimple({ query }: PageProps) {
           {view === 'linea' && (
             <SnapshotButton
               active={!!ref.snapshot}
-              onTake={() => ref.take(rows.map((r) => ({ t: r.t, v: r.simple })), `Referencia: i = ${fmtPct(state.i)}, C₀ = ${fmtMoney(state.c0, 0)}`)}
+              onTake={() =>
+                ref.take(
+                  rows.map((r) => ({ t: r.t, v: r.simple })),
+                  `Referencia: i = ${fmtPct(state.i)}, C₀ = ${fmtMoney(state.c0, 0)}`,
+                )
+              }
               onClear={ref.clear}
             />
           )}
@@ -213,58 +240,12 @@ export default function InteresSimple({ query }: PageProps) {
         {
           id: 'explicacion',
           label: 'Explicación',
-          content: (
-            <div className="prose">
-              <p>
-                En el régimen de <strong>interés simple</strong> los intereses se calculan siempre sobre el <strong>capital inicial</strong>. Los intereses
-                generados no se incorporan al capital: no producen nuevos intereses.
-              </p>
-              <ul>
-                <li>
-                  <strong>Capital inicial (C₀):</strong> importe que se invierte o se presta en el momento 0.
-                </li>
-                <li>
-                  <strong>Tasa de interés (i):</strong> rendimiento por unidad de capital y por período (3 % mensual = 0,03 por mes).
-                </li>
-                <li>
-                  <strong>Período (n):</strong> cantidad de unidades de tiempo transcurridas, en la misma unidad que la tasa.
-                </li>
-                <li>
-                  <strong>Interés (I):</strong> diferencia entre el capital final y el inicial.
-                </li>
-                <li>
-                  <strong>Capital final o valor futuro (VF):</strong> capital más intereses.
-                </li>
-              </ul>
-              <p>
-                Como cada período agrega el mismo interés <Tex math="C_0 \cdot i" />, el capital crece en <strong>línea recta</strong>: la tasa determina la
-                pendiente y el plazo, hasta dónde se extiende la recta. Probá subir la tasa con la escala fija activada para ver cómo se empina la recta.
-              </p>
-              <Callout kind="info">El gráfico de barras separa el capital original (que no cambia) de los intereses acumulados (que crecen linealmente).</Callout>
-            </div>
-          ),
+          content: <ExplicacionSimple />,
         },
         {
           id: 'formula',
           label: 'Fórmula',
-          content: (
-            <div className="prose">
-              <FormulaBox
-                math={['I = C_0 \\cdot i \\cdot n', 'VF = C_0 + I = C_0\\,(1 + i \\cdot n)']}
-                legend={[
-                  ['C_0', 'capital inicial'],
-                  ['i', 'tasa de interés por período (en forma decimal)'],
-                  ['n', 'cantidad de períodos, en la unidad de la tasa'],
-                  ['I', 'interés generado'],
-                  ['VF', 'valor futuro (capital final)'],
-                ]}
-              />
-              <p>
-                La expresión <Tex math="VF(n) = C_0 + (C_0 \cdot i)\, n" /> es una función lineal de <Tex math="n" /> con ordenada al origen{' '}
-                <Tex math="C_0" /> y pendiente <Tex math="C_0 \cdot i" />.
-              </p>
-            </div>
-          ),
+          content: <FormulaSimple />,
         },
         { id: 'desarrollo', label: 'Desarrollo', content: <StepList steps={steps} /> },
         {
@@ -301,4 +282,3 @@ export default function InteresSimple({ query }: PageProps) {
     />
   );
 }
-

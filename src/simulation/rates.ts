@@ -3,6 +3,7 @@
  * para graficar y tabular. No define fórmulas propias.
  */
 import {
+  fixedDeposit,
   compoundSchedule,
   convertEffective,
   dec,
@@ -133,17 +134,22 @@ export function equivalentEffectiveRates(rate: number, perYear: number): Equival
   });
 }
 
-/** Crecimiento de $1 a lo largo de un año con distintas tasas equivalentes (mismo resultado final). */
-export function equivalentGrowthPaths(rate: number, perYear: number, frequencies: number[]): { x: number; [key: string]: number }[] {
-  const tea = toNum(convertEffective(rate, perYear, 1));
-  const points = 365;
+/**
+ * Evolución de un capital durante un año con distintas tasas efectivas equivalentes:
+ * el capital sólo cambia al cierre de cada período de capitalización (escalones),
+ * pero todas las trayectorias terminan en el mismo monto. Eje x en meses.
+ */
+export function equivalentGrowthPaths(capital: number, rate: number, perYear: number, frequencies: number[]): { x: number; [key: string]: number }[] {
+  const tea = convertEffective(rate, perYear, 1);
+  const rates = frequencies.map((m) => ({ m, i: convertEffective(tea, 1, m) }));
   const rows: { x: number; [key: string]: number }[] = [];
-  for (let d = 0; d <= points; d += 5) {
-    const row: { x: number; [key: string]: number } = { x: d / 365 };
-    for (const m of frequencies) {
-      const completed = Math.floor((d / 365) * m + 1e-9);
-      const i = toNum(convertEffective(tea, 1, m));
-      row[`m${m}`] = toNum(dec(1).plus(i).pow(completed));
+  const steps = 360;
+  for (let k = 0; k <= steps; k++) {
+    const months = (12 * k) / steps;
+    const row: { x: number; [key: string]: number } = { x: months };
+    for (const { m, i } of rates) {
+      const completed = Math.floor((months * m) / 12 + 1e-9);
+      row[`m${m}`] = toNum(dec(capital).times(dec(1).plus(i).pow(completed)));
     }
     rows.push(row);
   }
@@ -181,4 +187,17 @@ export function compareAlternatives(alts: Alternative[], capital: number, months
       path,
     };
   });
+}
+
+/** Tasa de "un mes" y su TEA según cada convención (uniforme frente a días efectivos). */
+export function conventionComparison(tna: number) {
+  const uniform = toNum(periodicFromNominal(tna, 12));
+  const act365 = fixedDeposit({ capital: 1, tna, days: 30, base: 365 });
+  const act360 = fixedDeposit({ capital: 1, tna, days: 30, base: 360 });
+  return [
+    { convention: 'Períodos uniformes (m = 12)', calculation: 'TNA / 12', periodRate: uniform, tea: toNum(teaFromNominal(tna, 12)) },
+    { convention: 'ACT/365, 30 días', calculation: 'TNA · 30 / 365', periodRate: act365.periodRate, tea: act365.teaWithReinvestment },
+    { convention: 'ACT/360, 30 días', calculation: 'TNA · 30 / 360', periodRate: act360.periodRate, tea: act360.teaWithReinvestment },
+    { convention: '30/360 (mes comercial)', calculation: 'TNA · 30 / 360', periodRate: uniform, tea: toNum(teaFromNominal(tna, 12)) },
+  ];
 }

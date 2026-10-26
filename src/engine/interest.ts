@@ -69,9 +69,7 @@ export interface CompoundPeriod {
 export function compoundSchedule(c0: Num, i: Num, n: number): CompoundPeriod[] {
   const C = dec(c0);
   const rate = dec(i);
-  const rows: CompoundPeriod[] = [
-    { t: 0, opening: toNum(C), periodInterest: 0, closing: toNum(C), accumulatedInterest: 0, interestOnInterest: 0 },
-  ];
+  const rows: CompoundPeriod[] = [{ t: 0, opening: toNum(C), periodInterest: 0, closing: toNum(C), accumulatedInterest: 0, interestOnInterest: 0 }];
   let balance = C;
   for (let t = 1; t <= n; t++) {
     const interest = balance.times(rate);

@@ -8,7 +8,10 @@ import { useState } from 'react';
 export function ScaleLock({ locked, onToggle, onReset }: { locked: boolean; onToggle: (v: boolean) => void; onReset: () => void }) {
   return (
     <div className="row" style={{ gap: '0.35rem' }}>
-      <label className="check small" title="Con la escala fija, el eje vertical no se reajusta al mover las barras: los cambios de pendiente y altura se ven directamente.">
+      <label
+        className="check small"
+        title="Con la escala fija, el eje vertical no se reajusta al mover las barras: los cambios de pendiente y altura se ven directamente."
+      >
         <input type="checkbox" checked={locked} onChange={(e) => onToggle(e.target.checked)} />
         Escala fija
       </label>

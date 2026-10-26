@@ -71,7 +71,21 @@ export function StepList({ steps, visible }: { steps: Step[]; visible?: number }
 
 // ------------------------------------------------------------ Indicadores
 
-export function Kpi({ label, value, color, line, big, testId }: { label: ReactNode; value: ReactNode; color?: string; line?: boolean; big?: boolean; testId?: string }) {
+export function Kpi({
+  label,
+  value,
+  color,
+  line,
+  big,
+  testId,
+}: {
+  label: ReactNode;
+  value: ReactNode;
+  color?: string;
+  line?: boolean;
+  big?: boolean;
+  testId?: string;
+}) {
   return (
     <div className="kpi">
       <span className="kpi-label">
@@ -170,7 +184,18 @@ export interface WorkbenchProps {
   defaultPanel?: string;
 }
 
-export function Workbench({ controls, controlsTitle = 'Variables', onReset, chartTitle, chartToolbar, kpis, chart, chartFooter, panels, defaultPanel }: WorkbenchProps) {
+export function Workbench({
+  controls,
+  controlsTitle = 'Variables',
+  onReset,
+  chartTitle,
+  chartToolbar,
+  kpis,
+  chart,
+  chartFooter,
+  panels,
+  defaultPanel,
+}: WorkbenchProps) {
   const [active, setActive] = useState(defaultPanel ?? panels[0]?.id);
   const [collapsed, setCollapsed] = useState(false);
   return (
@@ -211,7 +236,13 @@ export function Workbench({ controls, controlsTitle = 'Variables', onReset, char
               active={active}
               onChange={setActive}
               extra={
-                <button type="button" className="btn small ghost" onClick={() => setCollapsed(true)} title="Ocultar el panel para ampliar el gráfico" aria-label="Ocultar panel">
+                <button
+                  type="button"
+                  className="btn small ghost"
+                  onClick={() => setCollapsed(true)}
+                  title="Ocultar el panel para ampliar el gráfico"
+                  aria-label="Ocultar panel"
+                >
                   <Icon name="collapse" />
                 </button>
               }

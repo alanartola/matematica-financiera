@@ -33,9 +33,7 @@ export const SYSTEM_LABELS: Record<AmortSystem, string> = {
 
 export const SYSTEMS: AmortSystem[] = ['frances', 'aleman', 'americano', 'bullet'];
 
-export type InterestConvention =
-  | { kind: 'uniforme' }
-  | { kind: 'dias'; basis: DayCountBasis; disbursement: string };
+export type InterestConvention = { kind: 'uniforme' } | { kind: 'dias'; basis: DayCountBasis; disbursement: string };
 
 export type PrepaymentMode = 'reducir-cuota' | 'reducir-plazo';
 
@@ -255,9 +253,7 @@ export function buildSchedule(input: LoanInput): ScheduleResult {
         capitalizedIntoPrincipal = accrued;
         principal = principal.plus(accrued);
         accrued = ZERO;
-        notes.push(
-          `Al abandonar el tramo Bullet en la cuota ${t}, los intereses devengados y no pagados se capitalizan (se suman al capital).`,
-        );
+        notes.push(`Al abandonar el tramo Bullet en la cuota ${t}, los intereses devengados y no pagados se capitalizan (se suman al capital).`);
       }
       system = sysEv.system;
       bulletMode = sysEv.bulletMode ?? 'compuesto';
@@ -395,7 +391,9 @@ export function buildSchedule(input: LoanInput): ScheduleResult {
   }
 
   if (rows.some((x) => Math.abs(x.openingPrincipal) + Math.abs(x.closingAccrued) + Math.abs(x.payment) > MAX_EXACT_MONEY)) {
-    notes.push('Algunos importes superan $ 90 billones: a partir de esa magnitud la representación numérica de tablas y gráficos pierde exactitud en los centavos.');
+    notes.push(
+      'Algunos importes superan $ 90 billones: a partir de esa magnitud la representación numérica de tablas y gráficos pierde exactitud en los centavos.',
+    );
   }
 
   const ignored = events.filter((ev) => (ev.type === 'prepago' ? ev.afterPeriod : ev.fromPeriod) > maturity);
@@ -431,8 +429,5 @@ export function buildSchedule(input: LoanInput): ScheduleResult {
 
 /** Flujo de fondos desde el punto de vista del deudor: +capital en t = 0, −pagos luego. */
 export function loanCashFlows(result: ScheduleResult): { t: number; amount: number }[] {
-  return [
-    { t: 0, amount: result.input.principal },
-    ...result.rows.map((row) => ({ t: row.period, amount: -(row.payment + row.extraPayment) })),
-  ];
+  return [{ t: 0, amount: result.input.principal }, ...result.rows.map((row) => ({ t: row.period, amount: -(row.payment + row.extraPayment) }))];
 }

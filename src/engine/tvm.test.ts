@@ -69,7 +69,14 @@ describe('TIR', () => {
     expect(res.warnings).toHaveLength(0);
   });
   it('TIR de un préstamo francés = tasa del préstamo', () => {
-    const s = buildSchedule({ principal: 10_000_000, periods: 36, paymentsPerYear: 12, rate: { kind: 'TNA', value: 0.36, m: 12 }, system: 'frances', rounding: 'exacto' });
+    const s = buildSchedule({
+      principal: 10_000_000,
+      periods: 36,
+      paymentsPerYear: 12,
+      rate: { kind: 'TNA', value: 0.36, m: 12 },
+      system: 'frances',
+      rounding: 'exacto',
+    });
     const flows = [{ t: 0, amount: 10_000_000 }, ...s.rows.map((r) => ({ t: r.period, amount: -r.payment }))];
     expect(irr(flows).irr!).toBeCloseTo(0.03, 10);
   });
@@ -157,7 +164,14 @@ describe('plazo fijo', () => {
 });
 
 describe('costo financiero total estimado', () => {
-  const schedule = buildSchedule({ principal: 1_000_000, periods: 12, paymentsPerYear: 12, rate: { kind: 'TNA', value: 0.6, m: 12 }, system: 'frances', rounding: 'exacto' });
+  const schedule = buildSchedule({
+    principal: 1_000_000,
+    periods: 12,
+    paymentsPerYear: 12,
+    rate: { kind: 'TNA', value: 0.6, m: 12 },
+    system: 'frances',
+    rounding: 'exacto',
+  });
   it('sin cargos, el CFT coincide con la TEA', () => {
     const res = analyzeLoanCost(schedule, NO_CHARGES);
     expect(res.periodicCost!).toBeCloseTo(0.05, 9);

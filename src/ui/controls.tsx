@@ -214,7 +214,13 @@ export function LabeledSegmented<T extends string | number>(props: {
   return (
     <div className="field">
       <span className="field-label">{props.label}</span>
-      <Segmented value={props.value} options={props.options} onChange={props.onChange} full ariaLabel={typeof props.label === 'string' ? props.label : undefined} />
+      <Segmented
+        value={props.value}
+        options={props.options}
+        onChange={props.onChange}
+        full
+        ariaLabel={typeof props.label === 'string' ? props.label : undefined}
+      />
       {props.help && <span className="field-help">{props.help}</span>}
     </div>
   );
@@ -247,7 +253,19 @@ export function DateField({ label, value, onChange, help }: { label: ReactNode; 
   );
 }
 
-export function TextField({ label, value, onChange, placeholder, list }: { label: ReactNode; value: string; onChange: (v: string) => void; placeholder?: string; list?: string }) {
+export function TextField({
+  label,
+  value,
+  onChange,
+  placeholder,
+  list,
+}: {
+  label: ReactNode;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  list?: string;
+}) {
   const id = useId();
   return (
     <div className="field">

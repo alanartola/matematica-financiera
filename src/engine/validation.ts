@@ -58,7 +58,12 @@ export function validateSchedule(result: ScheduleResult): Check[] {
     const expectedInterest = roundMoney(base.times(row.rate), rounding);
     // Tolerancia de un centavo adicional: la tasa se transporta como number y puede
     // alterar el redondeo de un importe situado exactamente en medio centavo.
-    if (expectedInterest.minus(row.interest).abs().gt(tol.plus(rounding === 'centavos' ? '0.01' : 0))) {
+    if (
+      expectedInterest
+        .minus(row.interest)
+        .abs()
+        .gt(tol.plus(rounding === 'centavos' ? '0.01' : 0))
+    ) {
       interestOk = false;
       interestDetail = `En la cuota ${row.period} el interés no coincide con saldo × tasa.`;
       break;

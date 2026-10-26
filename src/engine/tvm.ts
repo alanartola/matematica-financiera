@@ -195,7 +195,9 @@ export function irr(flows: Flow[]): IrrResult {
     );
   }
   if (result.roots.length > 1) {
-    warnings.push(`Se encontraron ${result.roots.length} TIR distintas. La TIR no es un criterio de decisión confiable en este caso: conviene decidir con el VAN a la tasa de costo de oportunidad.`);
+    warnings.push(
+      `Se encontraron ${result.roots.length} TIR distintas. La TIR no es un criterio de decisión confiable en este caso: conviene decidir con el VAN a la tasa de costo de oportunidad.`,
+    );
   }
   if (!result.roots.length) {
     warnings.push('No se encontró ninguna tasa entre −99 % y 1000 % por período que anule el VAN.');

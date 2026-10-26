@@ -90,7 +90,13 @@ export function App() {
           >
             <Icon name="present" /> Modo clase
           </button>
-          <button type="button" className="icon-btn" onClick={toggleTheme} title="Alternar modo claro / oscuro (tecla T)" aria-label="Alternar modo claro u oscuro">
+          <button
+            type="button"
+            className="icon-btn"
+            onClick={toggleTheme}
+            title="Alternar modo claro / oscuro (tecla T)"
+            aria-label="Alternar modo claro u oscuro"
+          >
             <Icon name={theme === 'dark' ? 'sun' : 'moon'} />
           </button>
         </div>

@@ -1,13 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  buildSchedule,
-  checkHistoryPreserved,
-  frenchPayment,
-  validateSchedule,
-  SYSTEMS,
-  type LoanInput,
-  type ScheduleResult,
-} from './index';
+import { buildSchedule, checkHistoryPreserved, frenchPayment, validateSchedule, SYSTEMS, type LoanInput, type ScheduleResult } from './index';
 
 const BASE: LoanInput = {
   principal: 10_000_000,
@@ -21,7 +13,6 @@ function expectAllChecks(result: ScheduleResult) {
   const failed = validateSchedule(result).filter((c) => !c.ok);
   expect(failed, JSON.stringify(failed)).toHaveLength(0);
 }
-
 
 describe('sistema francés', () => {
   const res = buildSchedule(BASE);
@@ -202,10 +193,14 @@ describe('cambios de tasa durante el préstamo', () => {
     expect(checkHistoryPreserved(base, modified, 12).ok).toBe(true);
   });
   it('recalcula la cuota francesa sobre el saldo y el plazo restante', () => {
-    const c13 = frenchPayment(modified.rows[11].closingPrincipal, 0.35 / 12, 24).toDecimalPlaces(2).toNumber();
+    const c13 = frenchPayment(modified.rows[11].closingPrincipal, 0.35 / 12, 24)
+      .toDecimalPlaces(2)
+      .toNumber();
     expect(modified.rows[12].payment).toBe(c13);
     expect(modified.rows[12].contractRate).toBeCloseTo(0.35 / 12, 14);
-    const c25 = frenchPayment(modified.rows[23].closingPrincipal, 0.4 / 12, 12).toDecimalPlaces(2).toNumber();
+    const c25 = frenchPayment(modified.rows[23].closingPrincipal, 0.4 / 12, 12)
+      .toDecimalPlaces(2)
+      .toNumber();
     expect(modified.rows[24].payment).toBe(c25);
   });
   it('en el alemán la amortización se mantiene y cambia el interés', () => {
@@ -313,7 +308,7 @@ describe('interés por días efectivos', () => {
 describe('batería de configuraciones aleatorias', () => {
   // Generador pseudoaleatorio determinístico (reproducible).
   let seed = 20261026;
-  const rand = () => ((seed = (seed * 1103515245 + 12345) % 2 ** 31) / 2 ** 31);
+  const rand = () => (seed = (seed * 1103515245 + 12345) % 2 ** 31) / 2 ** 31;
   it('todas las verificaciones se cumplen', () => {
     for (let k = 0; k < 150; k++) {
       const p = [1, 2, 4, 12][Math.floor(rand() * 4)];
@@ -324,7 +319,12 @@ describe('batería de configuraciones aleatorias', () => {
       if (n > 3 && rand() < 0.6) events.push({ type: 'sistema', fromPeriod: 2 + Math.floor(rand() * (n - 2)), system: SYSTEMS[Math.floor(rand() * 4)] });
       if (n > 3 && rand() < 0.5) events.push({ type: 'tasa', fromPeriod: 2 + Math.floor(rand() * (n - 2)), rate: { kind: 'TEA', value: rand() * 0.6 } });
       if (n > 3 && rand() < 0.5)
-        events.push({ type: 'prepago', afterPeriod: 1 + Math.floor(rand() * (n - 2)), amount: Math.round(rand() * 300_000), mode: rand() < 0.5 ? 'reducir-cuota' : 'reducir-plazo' });
+        events.push({
+          type: 'prepago',
+          afterPeriod: 1 + Math.floor(rand() * (n - 2)),
+          amount: Math.round(rand() * 300_000),
+          mode: rand() < 0.5 ? 'reducir-cuota' : 'reducir-plazo',
+        });
       const res = buildSchedule({
         principal: Math.round(rand() * 1e8) / 100 + 1000,
         periods: n,

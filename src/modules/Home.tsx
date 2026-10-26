@@ -7,8 +7,8 @@ export function Home() {
       <section className="hero">
         <h1>Matemática Financiera</h1>
         <p>
-          Matemática Financiera es un entorno interactivo diseñado para explorar, comprender y aplicar los principios del cálculo financiero mediante
-          modelos matemáticos, simulaciones y representaciones gráficas.
+          Matemática Financiera es un entorno interactivo diseñado para explorar, comprender y aplicar los principios del cálculo financiero mediante modelos
+          matemáticos, simulaciones y representaciones gráficas.
         </p>
         <div className="principle" aria-label="Principio de trabajo">
           <span>1 · Modificar una variable</span>
@@ -17,9 +17,8 @@ export function Home() {
           <span>4 · Verificar el resultado</span>
         </div>
         <p className="small muted">
-          Cada herramienta combina una explicación conceptual, la fórmula utilizada, el desarrollo numérico paso a paso y un gráfico que responde de
-          inmediato a los cambios. Para proyectar en clase, activá el <strong>Modo clase</strong> (tecla <kbd>P</kbd>); el modo oscuro se alterna con{' '}
-          <kbd>T</kbd>.
+          Cada herramienta combina una explicación conceptual, la fórmula utilizada, el desarrollo numérico paso a paso y un gráfico que responde de inmediato a
+          los cambios. Para proyectar en clase, activá el <strong>Modo clase</strong> (tecla <kbd>P</kbd>); el modo oscuro se alterna con <kbd>T</kbd>.
         </p>
       </section>
       <div className="module-grid">

@@ -84,7 +84,13 @@ describe('reconstrucción del capital original', () => {
 
   it('tasa distinta de la utilizada en un alemán: la detecta', () => {
     const s = buildSchedule({ principal: 10_000_000, periods: 36, paymentsPerYear: 12, rate: { kind: 'TNA', value: 0.48, m: 12 }, system: 'aleman' });
-    const res = reconstructPrincipal(base('aleman', s.rows.slice(33).map((r) => r.payment), { totalPeriods: 36 }));
+    const res = reconstructPrincipal(
+      base(
+        'aleman',
+        s.rows.slice(33).map((r) => r.payment),
+        { totalPeriods: 36 },
+      ),
+    );
     expect(res.status).toBe('sin-solucion');
     expect(res.impliedRate!).toBeCloseTo(0.04, 4);
     expect(res.discrepancies[0]).toMatch(/revela la tasa/);

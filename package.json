@@ -12,7 +12,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "test:all": "npm run typecheck && npm run test && npm run test:e2e"
+    "test:all": "npm run typecheck && npm run test && npm run test:e2e",
+    "format": "prettier --write src tests",
+    "format:check": "prettier --check src tests"
   },
   "dependencies": {
     "decimal.js": "^10.6.0",
@@ -30,6 +32,7 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
+    "prettier": "^3.9.10",
     "typescript": "~5.9",
     "vite": "^8.3.5",
     "vitest": "^5.0.5"
