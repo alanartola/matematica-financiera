@@ -164,7 +164,7 @@ export function SeriesChart<T extends object>(props: SeriesChartProps<T>) {
             textAnchor={xTickAngle ? 'end' : 'middle'}
             height={xTickAngle ? st.font * 5 : undefined}
             tickFormatter={xFormat}
-            allowDecimals={false}
+            allowDecimals={!xTicks}
             stroke={palette.axis}
             tick={st.axis.tick}
             tickLine={st.axis.tickLine}

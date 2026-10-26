@@ -969,7 +969,7 @@ table.data td.left {
   text-align: left;
 }
 
-table.data.wrap td,
+table.data.wrap td.left,
 table.data.wrap th {
   white-space: normal;
 }
