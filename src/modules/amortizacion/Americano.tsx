@@ -1,5 +1,6 @@
 import type { PageProps } from '../registry';
+import { SystemPage } from './SystemPage';
 
-export default function Pendiente(_props: PageProps) {
-  return <div className="empty">Sección en construcción.</div>;
+export default function Americano(props: PageProps) {
+  return <SystemPage {...props} system="americano" compareWith="frances" />;
 }
