@@ -59,7 +59,9 @@ export default function Simulador({ query }: PageProps) {
   const row = modified.rows[k - 1];
   const baseRow = base.rows[k - 1];
   const units = periodPlural(state.p);
-  const sysColor = (s: AmortSystem) => palette.series[SYSTEMS.indexOf(s)];
+  // Tonos de tramo distintos de los de amortización (azul) e interés (naranja).
+  const BAND_SLOTS: Record<AmortSystem, number> = { frances: 2, aleman: 6, americano: 3, bullet: 4 };
+  const sysColor = (s: AmortSystem) => palette.series[BAND_SLOTS[s]];
   const AM = palette.series[0];
   const IN = palette.series[1];
   const BASE = palette.neutral;
@@ -90,10 +92,10 @@ export default function Simulador({ query }: PageProps) {
   const bands: Band[] = modified.segments.map((s) => ({ from: s.from, to: s.to, color: sysColor(s.system), label: SYSTEM_LABELS[s.system] }));
   const transitions: RefLine[] = [
     ...modified.segments.slice(1).map((s) => ({ x: s.from, color: palette.marker })),
-    ...modified.rateSegments.slice(1).map((s) => ({ x: s.from, color: palette.series[6], label: `Tasa ${fmtPct(s.periodic, 2)}` })),
+    ...modified.rateSegments.slice(1).map((s) => ({ x: s.from, color: palette.series[7], label: `Tasa ${fmtPct(s.periodic, 2)}` })),
     ...events
       .filter((e) => e.type === 'prepago' && e.period <= modified.rows.length)
-      .map((e) => ({ x: e.period, color: palette.series[2], label: 'Pago extra' })),
+      .map((e) => ({ x: e.period, color: palette.series[5], label: 'Pago extra' })),
   ];
 
   const tooltip = (r: (typeof data)[number]) =>
@@ -105,7 +107,7 @@ export default function Simulador({ query }: PageProps) {
             { label: 'Tasa aplicada', value: r.rate !== undefined ? fmtPct(r.rate, 4) : '—' },
             { label: 'Amortización', value: fmtMoney(r.amortization), color: AM },
             { label: 'Interés', value: fmtMoney(r.interest), color: IN },
-            ...(r.extra ? [{ label: 'Pago extraordinario', value: fmtMoney(r.extra), color: palette.series[2] }] : []),
+            ...(r.extra ? [{ label: 'Pago extraordinario', value: fmtMoney(r.extra), color: palette.series[5] }] : []),
             { label: 'Cuota', value: fmtMoney(r.payment - r.extra), strong: true },
             { label: 'Saldo', value: fmtMoney(r.debt) },
             ...(r.basePayment !== undefined ? [{ label: 'Cuota original', value: fmtMoney(r.basePayment), color: BASE, line: true }] : []),
@@ -177,12 +179,12 @@ export default function Simulador({ query }: PageProps) {
         bands={bands}
         series={[
           { key: 'baseRate', label: 'Tasa original', color: BASE, dashed: true, width: 2, kind: 'step' },
-          { key: 'rate', label: 'Tasa aplicada', color: palette.series[6], kind: 'step' },
+          { key: 'rate', label: 'Tasa aplicada', color: palette.series[7], kind: 'step' },
         ]}
       />
     );
     legend = [
-      { label: 'Tasa aplicada', color: palette.series[6], line: true },
+      { label: 'Tasa aplicada', color: palette.series[7], line: true },
       { label: 'Tasa original', color: BASE, line: true, dashed: true },
     ];
   }
